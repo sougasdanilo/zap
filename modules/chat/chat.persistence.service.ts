@@ -208,6 +208,7 @@ export class ChatPersistenceService {
             isEdited: !!message.isEdited,
             isDeleted: !!message.isDeleted,
             reactions: Array.isArray(message.reactions) ? message.reactions : [],
+            raw: message.raw || null,
           },
         },
         { upsert: true },
@@ -483,6 +484,7 @@ export class ChatPersistenceService {
       isDeleted?: boolean;
       participant?: string;
       name?: string;
+      raw?: any;
     },
   ) {
     const normalizedJid = normalizeJid(payload.jid) || payload.jid;
@@ -521,6 +523,7 @@ export class ChatPersistenceService {
         ...(payload.quoted ? { quoted: payload.quoted } : {}),
         ...(payload.isEdited ? { isEdited: true } : {}),
         ...(payload.isDeleted ? { isDeleted: true, type: "system", text: "[Mensagem apagada]" } : {}),
+        ...(payload.raw ? { raw: payload.raw } : {}),
       };
 
       await ChatMessage.updateOne({ _id: docId }, { $set: update }, { upsert: false });
@@ -601,6 +604,7 @@ export class ChatPersistenceService {
       isEdited: !!doc.isEdited || undefined,
       isDeleted: !!doc.isDeleted || undefined,
       reactions: Array.isArray(doc.reactions) ? doc.reactions : undefined,
+      raw: doc.raw || undefined,
     });
 
     if (normalizedLimit) {

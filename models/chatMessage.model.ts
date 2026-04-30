@@ -32,6 +32,7 @@ export interface IChatMessage extends Document<string> {
   isEdited?: boolean;
   isDeleted?: boolean;
   reactions?: MessageReactionFull[] | null;
+  raw?: any | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -59,6 +60,7 @@ const chatMessageSchema = new Schema<IChatMessage>(
     isEdited: { type: Boolean, default: false },
     isDeleted: { type: Boolean, default: false },
     reactions: { type: [Schema.Types.Mixed], default: [] },
+    raw: { type: Schema.Types.Mixed, default: null },
   },
   { timestamps: true },
 );

@@ -172,6 +172,7 @@ export type CreateSessionOptions = {
     isDeleted?: boolean;
     participant?: string;
     name?: string;
+    raw?: any;
   }) => void;
   onMessageDelete?: (payload: {
     jid: string;

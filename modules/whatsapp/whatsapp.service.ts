@@ -8,6 +8,7 @@ import path from "path";
 import pino from "pino";
 import { ChatStore } from "../chat/chat.store";
 import { ChatPersistenceService } from "../chat/chat.persistence.service";
+import { ChatMessage } from "../../models/chatMessage.model";
 import { createSession } from "./session.manager";
 import { profileService } from "./profile.service";
 import type {
@@ -180,6 +181,37 @@ function findRawMessage(sessionId: string, jid: string, messageId: string) {
   return undefined;
 }
 
+async function loadRawMessagesFromDatabase(sessionId: string) {
+  try {
+    console.log(`[DEBUG] Loading raw messages from database for session: ${sessionId}`);
+    
+    const messages = await ChatMessage.find({ 
+      sessionId, 
+      raw: { $exists: true, $ne: null } 
+    })
+    .select({ id: 1, jid: 1, raw: 1 })
+    .lean()
+    .exec();
+
+    if (!rawMessages.has(sessionId)) {
+      rawMessages.set(sessionId, new Map());
+    }
+
+    const cache = rawMessages.get(sessionId)!;
+    
+    for (const message of messages) {
+      if (message.id && message.jid && message.raw) {
+        const key = `${message.jid}::${message.id}`;
+        cache.set(key, message.raw);
+      }
+    }
+
+    console.log(`[DEBUG] Loaded ${messages.length} raw messages for session: ${sessionId}`);
+  } catch (error) {
+    console.error(`[ERROR] Failed to load raw messages for session ${sessionId}:`, error);
+  }
+}
+
 export class WhatsAppService {
   static async initSession(sessionId: string, force = false) {
     if (!force && sessions.has(sessionId)) {
@@ -191,6 +223,9 @@ export class WhatsAppService {
       qr: undefined,
       lastStatusCode: undefined,
     });
+
+    // Load raw messages from database into memory cache
+    await loadRawMessagesFromDatabase(sessionId);
 
     const sock = await createSession(sessionId, {
       onIncomingMessage: (message) => {
