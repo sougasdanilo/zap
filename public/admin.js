@@ -18,18 +18,8 @@ const elements = {
   heroSubtitle: document.getElementById('hero-subtitle'),
   currentUserBadge: document.getElementById('current-user-badge'),
   statsGrid: document.getElementById('stats-grid'),
-  tenantStatusBadge: document.getElementById('tenant-status-badge'),
-  tenantForm: document.getElementById('tenant-form'),
-  tenantNameInput: document.getElementById('tenant-name-input'),
-  tenantDescriptionInput: document.getElementById('tenant-description-input'),
-  tenantSlugInput: document.getElementById('tenant-slug-input'),
-  tenantSessionInput: document.getElementById('tenant-session-input'),
-  tenantConnectedInput: document.getElementById('tenant-connected-input'),
-  tenantAiInput: document.getElementById('tenant-ai-input'),
-  tenantSaveBtn: document.getElementById('tenant-save-btn'),
   membersEmpty: document.getElementById('members-empty'),
   membersList: document.getElementById('members-list'),
-  newMemberBtn: document.getElementById('new-member-btn'),
   memberForm: document.getElementById('member-form'),
   memberFormTitle: document.getElementById('member-form-title'),
   memberFormMode: document.getElementById('member-form-mode'),
@@ -194,19 +184,6 @@ function renderTenant() {
   elements.heroTitle.textContent = tenant.name
   elements.heroSubtitle.textContent = `Slug ${tenant.slug} · Sessao compartilhada ${tenant.sessionId}`
   elements.currentUserBadge.textContent = `${state.currentUser?.fullName || state.currentUser?.username || '-'} · ${formatRole(state.currentUser?.role || 'collaborator')}`
-  elements.tenantStatusBadge.textContent = tenant.status === 'active' ? 'Ativo' : 'Suspenso'
-  elements.tenantStatusBadge.className = `admin-badge ${tenant.status === 'active' ? 'admin-badge-live' : 'admin-badge-danger'}`
-  elements.tenantNameInput.value = tenant.name || ''
-  elements.tenantDescriptionInput.value = tenant.description || ''
-  elements.tenantSlugInput.value = tenant.slug || ''
-  elements.tenantSessionInput.value = tenant.sessionId || ''
-  elements.tenantConnectedInput.value = tenant.connected ? 'Conectado' : 'Aguardando conexao'
-  elements.tenantAiInput.value = tenant.aiEnabled ? 'Ligada' : 'Desligada'
-
-  const canManageTenant =
-    Array.isArray(state.currentUser?.permissions) &&
-    state.currentUser.permissions.includes('tenant:manage')
-  elements.tenantSaveBtn.disabled = !canManageTenant
 }
 
 function renderRoleOptions(selectedRole) {
@@ -338,33 +315,6 @@ async function loadOverview() {
   resetMemberForm()
 }
 
-async function saveTenant(event) {
-  event.preventDefault()
-  hideFeedback()
-
-  const payload = {
-    name: elements.tenantNameInput.value.trim(),
-    description: elements.tenantDescriptionInput.value.trim(),
-  }
-
-  if (!payload.name) {
-    showFeedback('Informe um nome valido para o tenant.', 'error')
-    return
-  }
-
-  try {
-    const response = await api('/api/admin/tenant', {
-      method: 'PATCH',
-      body: JSON.stringify(payload),
-    })
-
-    state.tenant = response.tenant
-    renderTenant()
-    showFeedback('Tenant atualizado com sucesso.', 'success')
-  } catch (error) {
-    showFeedback(error.message || 'Nao foi possivel salvar o tenant.', 'error')
-  }
-}
 
 async function saveMember(event) {
   event.preventDefault()
@@ -425,17 +375,11 @@ function bindEvents() {
     window.location.href = '/auth'
   })
 
-  elements.newMemberBtn.addEventListener('click', () => {
-    hideFeedback()
-    resetMemberForm()
-  })
-
   elements.memberCancelBtn.addEventListener('click', () => {
     hideFeedback()
     resetMemberForm()
   })
 
-  elements.tenantForm.addEventListener('submit', saveTenant)
   elements.memberForm.addEventListener('submit', saveMember)
 
   elements.memberRole.addEventListener('change', () => {
