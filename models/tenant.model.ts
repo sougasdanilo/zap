@@ -33,7 +33,6 @@ const tenantSchema = new Schema<ITenant>(
     slug: {
       type: String,
       required: true,
-      unique: true,
       trim: true,
       minlength: 2,
       maxlength: 160,
@@ -57,9 +56,9 @@ const tenantSchema = new Schema<ITenant>(
     whatsappCredentials: {
       sessionId: {
         type: String,
-        required: true,
-        unique: true,
+        required: false,
         trim: true,
+        default: null,
       },
       connected: {
         type: Boolean,
@@ -85,6 +84,6 @@ const tenantSchema = new Schema<ITenant>(
 );
 
 tenantSchema.index({ slug: 1 }, { unique: true });
-tenantSchema.index({ "whatsappCredentials.sessionId": 1 }, { unique: true });
+tenantSchema.index({ "whatsappCredentials.sessionId": 1 }, { unique: true, sparse: true });
 
 export const Tenant = mongoose.model<ITenant>("Tenant", tenantSchema);

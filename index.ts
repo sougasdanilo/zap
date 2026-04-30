@@ -9,8 +9,12 @@ import adminRoutes from './routes/admin.routes'
 import { AIConversationService } from './modules/ai/ai.conversation.service'
 import { env } from './config/env'
 import { database } from './config/database'
+import { validateEnvironment } from './config/validation'
 import path from 'path'
 import { fileURLToPath } from 'url'
+
+// Validate environment variables before starting
+validateEnvironment()
 
 const app = express()
 const __filename = fileURLToPath(import.meta.url)
@@ -28,10 +32,15 @@ app.use('/api/ai', aiTestRoutes)
 app.use(express.static(publicDir))
 
 // Conectar ao MongoDB
-database.connect().catch(console.error)
+database.connect().catch((error) => {
+  console.error('Falha crítica ao conectar ao MongoDB:', error);
+  process.exit(1);
+})
 
 // Carrega status da IA ao iniciar
-AIConversationService.loadStatus().catch(console.error)
+AIConversationService.loadStatus().catch((error) => {
+  console.error('Erro ao carregar status da IA:', error);
+})
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(publicDir, 'index.html'))

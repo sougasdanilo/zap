@@ -59,7 +59,9 @@ export interface AuthContext {
 }
 
 export class AuthService {
-  private static readonly JWT_SECRET = env.JWT_SECRET || "default-secret-key";
+  private static readonly JWT_SECRET = env.JWT_SECRET || (() => {
+    throw new Error("JWT_SECRET environment variable is required in production");
+  })();
   private static readonly JWT_EXPIRES_IN = "15m";
   private static readonly REFRESH_TOKEN_EXPIRES_IN = "7d";
 
