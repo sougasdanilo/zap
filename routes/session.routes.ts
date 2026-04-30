@@ -1,64 +1,120 @@
-import { Router } from 'express'
-import { WhatsAppService } from '../modules/whatsapp/whatsapp.service'
-import { authenticateToken, AuthenticatedRequest } from '../middleware/auth.middleware'
+import { Router } from "express";
+import { existsSync } from "fs";
+import path from "path";
+import { WhatsAppService } from "../modules/whatsapp/whatsapp.service";
+import {
+  authenticateToken,
+  ensureSessionAccess,
+  requirePermission,
+  type AuthenticatedRequest,
+} from "../middleware/auth.middleware";
 
-const router = Router()
+const router = Router();
 
-router.post('/session/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
-  const { id } = req.params
-  const userId = req.user?.id
+router.post(
+  "/session/:id",
+  authenticateToken,
+  requirePermission("chat:view"),
+  ensureSessionAccess(["id"]),
+  async (req: AuthenticatedRequest, res) => {
+    const rawId = req.params.id;
+    const id = Array.isArray(rawId) ? rawId[0] : rawId;
 
-  if (typeof id !== 'string') {
-    return res.status(400).json({ error: 'ID de sessão inválido' })
-  }
+    if (typeof id !== "string") {
+      return res.status(400).json({ error: "ID de sessao invalido" });
+    }
 
-  await WhatsAppService.initSession(id)
+    await WhatsAppService.initSession(id);
 
-  res.json({
-    message: `Sessão ${id} iniciada`,
-    state: WhatsAppService.getSessionState(id)
-  })
-})
+    res.json({
+      message: `Sessao ${id} iniciada`,
+      state: WhatsAppService.getSessionState(id),
+    });
+  },
+);
 
-router.get('/sessions', authenticateToken, (req: AuthenticatedRequest, res) => {
-  res.json({
-    active: WhatsAppService.listSessions(),
-    stored: WhatsAppService.listStoredSessions()
-  })
-})
+router.get(
+  "/sessions",
+  authenticateToken,
+  requirePermission("chat:view"),
+  (req: AuthenticatedRequest, res) => {
+    const sessionId = req.user?.sessionId;
 
-router.get('/session/:id/status', authenticateToken, (req: AuthenticatedRequest, res) => {
-  const { id } = req.params
+    if (!sessionId) {
+      return res.status(401).json({ error: "Usuario nao autenticado" });
+    }
 
-  if (typeof id !== 'string') {
-    return res.status(400).json({ error: 'ID de sessão inválido' })
-  }
+    const authDir = path.resolve("auth", sessionId);
 
-  res.json({
-    id,
-    state: WhatsAppService.getSessionState(id)
-  })
-})
+    res.json({
+      active: WhatsAppService.listSessions().includes(sessionId) ? [sessionId] : [],
+      stored: existsSync(authDir) ? [sessionId] : [],
+    });
+  },
+);
 
-router.delete('/session/:id', async (req, res) => {
-  const { id } = req.params
-  const { deleteCredentials } = req.query
+router.get(
+  "/session/:id/status",
+  authenticateToken,
+  requirePermission("chat:view"),
+  ensureSessionAccess(["id"]),
+  (req: AuthenticatedRequest, res) => {
+    const rawId = req.params.id;
+    const id = Array.isArray(rawId) ? rawId[0] : rawId;
 
-  await WhatsAppService.closeSession(id, deleteCredentials === 'true')
+    if (typeof id !== "string") {
+      return res.status(400).json({ error: "ID de sessao invalido" });
+    }
 
-  res.json({ 
-    message: deleteCredentials === 'true' 
-      ? `Sessão ${id} encerrada e credenciais excluídas` 
-      : `Sessão ${id} encerrada`
-  })
-})
+    res.json({
+      id,
+      state: WhatsAppService.getSessionState(id),
+    });
+  },
+);
 
-router.delete('/session/:id/credentials', async (req, res) => {
-  const { id } = req.params
+router.delete(
+  "/session/:id",
+  authenticateToken,
+  requirePermission("tenant:manage"),
+  ensureSessionAccess(["id"]),
+  async (req: AuthenticatedRequest, res) => {
+    const rawId = req.params.id;
+    const id = Array.isArray(rawId) ? rawId[0] : rawId;
+    const { deleteCredentials } = req.query;
 
-  await WhatsAppService.deleteSessionCredentials(id)
+    if (typeof id !== "string") {
+      return res.status(400).json({ error: "ID de sessao invalido" });
+    }
 
-  res.json({ message: `Credenciais da sessão ${id} excluídas` })
-})
+    await WhatsAppService.closeSession(id, deleteCredentials === "true");
 
-export default router
+    res.json({
+      message:
+        deleteCredentials === "true"
+          ? `Sessao ${id} encerrada e credenciais excluidas`
+          : `Sessao ${id} encerrada`,
+    });
+  },
+);
+
+router.delete(
+  "/session/:id/credentials",
+  authenticateToken,
+  requirePermission("tenant:manage"),
+  ensureSessionAccess(["id"]),
+  async (req: AuthenticatedRequest, res) => {
+    const rawId = req.params.id;
+    const id = Array.isArray(rawId) ? rawId[0] : rawId;
+
+    if (typeof id !== "string") {
+      return res.status(400).json({ error: "ID de sessao invalido" });
+    }
+
+    await WhatsAppService.deleteSessionCredentials(id);
+
+    res.json({ message: `Credenciais da sessao ${id} excluidas` });
+  },
+);
+
+export default router;

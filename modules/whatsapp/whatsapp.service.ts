@@ -18,6 +18,7 @@ import type {
 import { normalizeJid } from "../../utils/message.utils";
 import { MessageSender } from "../../utils/message.sender";
 import { AIConversationService } from "../ai/ai.conversation.service";
+import { TenantService } from "../tenant/tenant.service";
 
 const sessions: Map<string, WASocket> = new Map();
 const reconnecting: Set<string> = new Set();
@@ -364,6 +365,7 @@ export class WhatsAppService {
         }
 
         if (connection === "open") {
+          await TenantService.syncWhatsAppConnection(sessionId, true).catch(() => undefined);
           setState(sessionId, { status: "connected", qr: undefined });
         }
 
@@ -374,6 +376,7 @@ export class WhatsAppService {
             rawMessages.delete(sessionId);
             // Auto-delete credentials when logged out
             await this.deleteSessionCredentials(sessionId);
+            await TenantService.syncWhatsAppConnection(sessionId, false).catch(() => undefined);
             setState(sessionId, {
               status: "closed",
               qr: undefined,
@@ -387,6 +390,7 @@ export class WhatsAppService {
             qr: undefined,
             lastStatusCode: statusCode,
           });
+          await TenantService.syncWhatsAppConnection(sessionId, false).catch(() => undefined);
           this.reconnectSession(sessionId);
         }
       },
@@ -610,6 +614,8 @@ export class WhatsAppService {
         rmSync(authDir, { recursive: true, force: true });
         console.log(`[WhatsApp] Credentials deleted for session: ${sessionId}`);
       }
+
+      await TenantService.syncWhatsAppConnection(sessionId, false).catch(() => undefined);
     } catch (error) {
       console.error(`[WhatsApp] Error deleting credentials for session ${sessionId}:`, error);
       throw error;
@@ -630,6 +636,8 @@ export class WhatsAppService {
     if (deleteCredentials) {
       await this.deleteSessionCredentials(sessionId);
     }
+
+    await TenantService.syncWhatsAppConnection(sessionId, false).catch(() => undefined);
     
     setState(sessionId, { status: "closed", qr: undefined });
   }

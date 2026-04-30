@@ -10,26 +10,69 @@ const state = {
   mediaCache: new Map(),
   pendingMedia: new Set(),
   currentUser: null,
+  currentTenant: null,
   accessToken: null,
 };
 
-// Logout function
-async function logout() {
-  try {
-    // Delete session credentials if session exists
-    if (state.sessionId) {
-      await callApi(`/session/${encodeURIComponent(state.sessionId)}/credentials`, {
-        method: 'DELETE'
-      });
-    }
-  } catch (error) {
-    console.error('Error deleting session credentials:', error);
-  }
-  
+function clearAuth() {
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('user');
+}
+
+async function refreshAccessToken() {
+  const refreshToken = localStorage.getItem('refreshToken');
+
+  if (!refreshToken) {
+    throw new Error('Token refresh indisponivel');
+  }
+
+  const refreshResponse = await fetch('/api/auth/refresh', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ refreshToken })
+  });
+
+  if (!refreshResponse.ok) {
+    throw new Error('Token refresh failed');
+  }
+
+  const refreshData = await refreshResponse.json();
+  localStorage.setItem('accessToken', refreshData.tokens.accessToken);
+  localStorage.setItem('refreshToken', refreshData.tokens.refreshToken);
+  state.accessToken = refreshData.tokens.accessToken;
+}
+
+// Logout function
+async function logout() {
+  clearAuth();
   window.location.href = '/auth';
+}
+
+function hasPermission(permission) {
+  return Array.isArray(state.currentUser?.permissions) && state.currentUser.permissions.includes(permission);
+}
+
+function updateIdentityLabels(sessionId = state.sessionId) {
+  const displayName =
+    state.currentUser?.fullName ||
+    state.currentUser?.username ||
+    'Usuario';
+  const role = state.currentUser?.role || 'collaborator';
+  const roleLabels = {
+    owner: 'Proprietario',
+    admin: 'Administrador',
+    collaborator: 'Colaborador',
+  };
+
+  elements.sessionLabel.textContent = `${displayName} · ${roleLabels[role] || role}`;
+  elements.tenantLabel.textContent = state.currentTenant
+    ? `${state.currentTenant.name} · Sessao ${sessionId || state.currentTenant.sessionId}`
+    : `Sessao ${sessionId || '-'}`;
+  elements.sessionLabel.classList.remove('hidden');
+  elements.tenantLabel.classList.remove('hidden');
 }
 
 // Check authentication
@@ -53,23 +96,7 @@ async function checkAuthentication() {
 
     if (!response.ok) {
       if (response.status === 401) {
-        // Try to refresh token
-        const refreshResponse = await fetch('/api/auth/refresh', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ refreshToken })
-        });
-
-        if (!refreshResponse.ok) {
-          throw new Error('Token refresh failed');
-        }
-
-        const refreshData = await refreshResponse.json();
-        localStorage.setItem('accessToken', refreshData.tokens.accessToken);
-        localStorage.setItem('refreshToken', refreshData.tokens.refreshToken);
-        state.accessToken = refreshData.tokens.accessToken;
+        await refreshAccessToken();
       } else {
         throw new Error('Authentication failed');
       }
@@ -87,14 +114,13 @@ async function checkAuthentication() {
     if (userResponse.ok) {
       const userData = await userResponse.json();
       state.currentUser = userData.user;
+      state.currentTenant = userData.tenant;
     }
 
   } catch (error) {
     console.error('Authentication error:', error);
     // Clear auth and redirect to login
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
+    clearAuth();
     window.location.href = '/auth';
   }
 }
@@ -108,6 +134,7 @@ const elements = {
   qrWrapper: document.getElementById("qr-wrapper"),
   qrImage: document.getElementById("qr-image"),
   sessionLabel: document.getElementById("session-label"),
+  tenantLabel: document.getElementById("tenant-label"),
   connectionPill: document.getElementById("connection-pill"),
   chatSearchInput: document.getElementById("chat-search-input"),
   chatList: document.getElementById("chat-list"),
@@ -124,6 +151,7 @@ const elements = {
   businessToggleBtn: document.getElementById("business-toggle-btn"),
   aiConfigBtn: document.getElementById("ai-config-btn"),
   aiToggleBtn: document.getElementById("ai-toggle-btn"),
+  teamBtn: document.getElementById("team-btn"),
   logoutBtn: document.getElementById("logout-btn"),
   // Hidden inputs
   jidInput: document.getElementById("jid-input"),
@@ -1319,7 +1347,7 @@ function scrollToBottom(smooth = true) {
   });
 }
 
-async function callApi(url, options = {}) {
+async function callApi(url, options = {}, allowRetry = true) {
   const headers = { "Content-Type": "application/json" };
   
   // Add authentication header if available
@@ -1331,6 +1359,11 @@ async function callApi(url, options = {}) {
     headers,
     ...options,
   });
+
+  if (response.status === 401 && allowRetry) {
+    await refreshAccessToken();
+    return callApi(url, options, false);
+  }
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
@@ -1639,7 +1672,7 @@ async function startSessionConnection(sessionId) {
   state.mediaCache = new Map();
   state.pendingMedia = new Set();
 
-  elements.sessionLabel.textContent = `Sessao: ${sessionId}`;
+  updateIdentityLabels(sessionId);
   showConnectUI();
   setConnectionVisual("connecting");
   setConnectionStatus("Iniciando sessao...");
@@ -1689,8 +1722,7 @@ function switchAiProvider(provider) {
 
 async function loadAiConfig() {
   try {
-    const response = await fetch('/api/ai/config');
-    const config = await response.json();
+    const config = await callApi('/api/ai/config');
     
     // Set provider
     const providerRadio = document.querySelector(`input[name="ai-provider"][value="${config.provider}"]`);
@@ -1744,7 +1776,7 @@ function toggleGroupOptions(enabled) {
   }
 }
 
-async function saveAiConfig() {
+saveAiConfig = async function() {
   try {
     const provider = document.querySelector('input[name="ai-provider"]:checked').value;
     
@@ -1787,9 +1819,9 @@ async function saveAiConfig() {
     console.error('Error saving AI config:', error);
     showConfigStatus('Erro ao salvar configuração', 'error');
   }
-}
+};
 
-async function sendTestMessage() {
+sendTestMessage = async function() {
   const message = elements.testChatInput.value.trim();
   if (!message) return;
 
@@ -1930,9 +1962,9 @@ async function getCurrentBotConfig() {
   }
 
   return config;
-}
+};
 
-async function testGoogleAiConnection() {
+testGoogleAiConnection = async function() {
   const apiKey = elements.googleAiApiKey.value.trim();
   const model = elements.googleAiModel.value;
   
@@ -2093,7 +2125,7 @@ async function boot() {
     // Connection
     addEventListenerSafe(elements.connectBtn, "click", async () => {
       // Use fixed session ID for internal control
-      const sessionId = state.currentUser?.username || "default";
+      const sessionId = state.currentTenant?.sessionId || state.sessionId || "default";
 
       await handleAsyncError(startSessionConnection(sessionId));
     });
@@ -2228,10 +2260,14 @@ async function boot() {
       }
     });
 
+    addEventListenerSafe(elements.teamBtn, "click", () => {
+      window.location.href = '/admin';
+    });
+
     
     // Logout
     addEventListenerSafe(elements.logoutBtn, "click", async () => {
-      if (confirm('Tem certeza que deseja sair? As credenciais do WhatsApp serão excluídas.')) {
+      if (confirm('Tem certeza que deseja encerrar sua sessão neste navegador?')) {
         await handleAsyncError(logout());
       }
     });
@@ -2285,8 +2321,13 @@ async function boot() {
     // Get user's unique session ID
     const userData = await handleAsyncError(callApi("/api/auth/me"));
     if (userData && userData.sessionId) {
+      state.currentUser = userData.user;
+      state.currentTenant = userData.tenant;
       state.sessionId = userData.sessionId;
-      elements.sessionLabel.textContent = `Usuário: ${userData.user.username}`;
+      updateIdentityLabels(userData.sessionId);
+      elements.teamBtn.classList.toggle('hidden', !(hasPermission('team:manage') || hasPermission('tenant:manage')));
+      elements.aiConfigBtn.classList.toggle('hidden', !hasPermission('ai:manage'));
+      elements.aiToggleBtn.classList.toggle('hidden', !hasPermission('ai:manage'));
       
       // Auto-start session with user's unique session ID
       await handleAsyncError(startSessionConnection(userData.sessionId));
@@ -2297,7 +2338,7 @@ async function boot() {
         const preferredSessionId =
           sessions.active?.[0] ||
           sessions.stored?.[0] ||
-          state.currentUser?.username || "default";
+          state.currentTenant?.sessionId || "default";
         await handleAsyncError(startSessionConnection(preferredSessionId));
       }
     }
@@ -2306,6 +2347,174 @@ async function boot() {
     showToast('Erro ao inicializar aplicação', 'error');
   }
 }
+
+async function saveAiConfig() {
+  try {
+    const provider = document.querySelector('input[name="ai-provider"]:checked').value;
+
+    const config = {
+      provider,
+      googleAI: provider === 'google-ai' ? {
+        apiKey: elements.googleAiApiKey.value.trim(),
+        model: elements.googleAiModel.value,
+        temperature: parseFloat(elements.googleAiTemperature.value),
+        maxTokens: parseInt(elements.googleAiMaxTokens.value)
+      } : undefined,
+      botContext: {
+        systemPrompt: elements.systemPrompt.value.trim(),
+        maxHistoryLength: parseInt(elements.maxHistoryLength.value)
+      },
+      groupSettings: {
+        enabled: elements.groupAiEnabled.checked,
+        respondToMentions: elements.respondToMentions.checked,
+        respondToCommands: elements.respondToCommands.checked,
+        commandPrefix: elements.commandPrefix.value.trim() || '!'
+      }
+    };
+
+    await callApi('/api/ai/config', {
+      method: 'POST',
+      body: JSON.stringify(config)
+    });
+
+    showConfigStatus('Configuração salva com sucesso!', 'success');
+    setTimeout(hideAiConfigModal, 2000);
+  } catch (error) {
+    console.error('Error saving AI config:', error);
+    showConfigStatus('Erro ao salvar configuração', 'error');
+  }
+}
+
+async function sendTestMessage() {
+  const message = elements.testChatInput.value.trim();
+  if (!message) return;
+
+  addTestMessage(message, 'user');
+  elements.testChatInput.value = '';
+
+  try {
+    const config = await getCurrentBotConfig();
+    const data = await callApi('/api/ai/test-chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        message,
+        config
+      })
+    });
+
+    addTestMessage(data.response, 'bot');
+  } catch (error) {
+    console.error('Error testing chat:', error);
+    addTestMessage('Erro de conexão com o servidor', 'bot', true);
+  }
+}
+
+async function testGoogleAiConnection() {
+  const apiKey = elements.googleAiApiKey.value.trim();
+  const model = elements.googleAiModel.value;
+
+  if (!apiKey) {
+    showConfigStatus('API Key é obrigatória', 'error');
+    return;
+  }
+
+  try {
+    elements.testGoogleAiBtn.disabled = true;
+    elements.testGoogleAiBtn.textContent = 'Testando...';
+    hideConfigStatus();
+
+    const result = await callApi('/api/ai/test-google-ai', {
+      method: 'POST',
+      body: JSON.stringify({ apiKey, model })
+    });
+
+    if (result.valid) {
+      showConfigStatus('Conexão com Google AI bem-sucedida!', 'success');
+      await loadGoogleAIModels();
+    } else {
+      showConfigStatus('Falha na conexão. Verifique se a API Key está correta.', 'error');
+    }
+  } catch (error) {
+    console.error('Error testing Google AI:', error);
+    showConfigStatus('Erro ao testar conexão. Tente novamente.', 'error');
+  } finally {
+    elements.testGoogleAiBtn.disabled = false;
+    elements.testGoogleAiBtn.textContent = 'Testar';
+  }
+};
+
+loadGoogleAIModels = async function() {
+  const apiKey = elements.googleAiApiKey.value.trim();
+
+  if (!apiKey) {
+    return;
+  }
+
+  try {
+    const data = await callApi('/api/ai/google-ai-models', {
+      method: 'POST',
+      body: JSON.stringify({ apiKey })
+    });
+
+    const models = data.models || [];
+    const currentModel = elements.googleAiModel.value;
+    elements.googleAiModel.innerHTML = '';
+
+    const modelNames = {
+      'gemini-2.5-flash': 'Gemini 2.5 Flash (Rápido)',
+      'gemini-2.5-pro': 'Gemini 2.5 Pro (Completo)',
+      'gemini-3-pro-preview': 'Gemini 3 Pro Preview',
+      'gemini-3-flash-preview': 'Gemini 3 Flash Preview',
+      'gemini-3.1-flash-lite': 'Gemini 3.1 Flash Lite'
+    };
+
+    models.forEach((model) => {
+      const option = document.createElement('option');
+      option.value = model;
+      option.textContent = modelNames[model] || model;
+      elements.googleAiModel.appendChild(option);
+    });
+
+    if (models.includes(currentModel)) {
+      elements.googleAiModel.value = currentModel;
+    }
+  } catch (error) {
+    console.error('Error loading Google AI models:', error);
+  }
+};
+
+loadAIStatus = async function() {
+  if (!state.sessionId) return;
+
+  try {
+    const status = await callApi(`/api/ai/status/${encodeURIComponent(state.sessionId)}`);
+    updateAIToggleButton(status.enabled);
+  } catch (error) {
+    console.error('Error loading AI status:', error);
+  }
+};
+
+toggleAI = async function() {
+  if (!state.sessionId) {
+    alert('Conecte-se ao WhatsApp primeiro');
+    return;
+  }
+
+  try {
+    elements.aiToggleBtn.disabled = true;
+    const result = await callApi(`/api/ai/toggle/${encodeURIComponent(state.sessionId)}`, {
+      method: 'POST',
+    });
+
+    updateAIToggleButton(result.enabled);
+    showNotification(result.message, result.enabled ? 'success' : 'info');
+  } catch (error) {
+    console.error('Error toggling AI:', error);
+    showNotification('Erro ao alterar status da IA', 'error');
+  } finally {
+    elements.aiToggleBtn.disabled = false;
+  }
+};
 
 // Cleanup on page unload
 window.addEventListener('beforeunload', () => {

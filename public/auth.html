@@ -13,10 +13,9 @@
         <section id="auth-screen" class="connect-screen">
             <div class="connect-card">
                 <p class="eyebrow">WhatsApp Bot Console</p>
-                
-                <!-- Login Form -->
+
                 <div id="login-form" class="auth-form">
-                    <h1>Faça Login</h1>
+                    <h1>Faca Login</h1>
                     <p class="connect-subtitle">
                         Entre com suas credenciais para acessar o painel.
                     </p>
@@ -31,7 +30,7 @@
                                 required
                             />
                         </div>
-                        
+
                         <div class="field">
                             <label for="login-password">Senha</label>
                             <input
@@ -48,20 +47,41 @@
                     </form>
 
                     <div class="auth-switch">
-                        <p>Não tem uma conta? <a href="#" id="show-register">Criar conta</a></p>
+                        <p>Nao tem uma conta? <a href="#" id="show-register">Criar tenant</a></p>
                     </div>
                 </div>
 
-                <!-- Register Form -->
                 <div id="register-form" class="auth-form hidden">
-                    <h1>Criar Conta</h1>
+                    <h1>Criar Tenant</h1>
                     <p class="connect-subtitle">
-                        Cadastre-se para usar o WhatsApp Bot.
+                        Abra um workspace e depois convide seus colaboradores pelo painel de acessos.
                     </p>
 
                     <form id="register-form-element" class="auth-form-element">
                         <div class="field">
-                            <label for="register-username">Nome de usuário</label>
+                            <label for="register-full-name">Nome completo</label>
+                            <input
+                                id="register-full-name"
+                                type="text"
+                                placeholder="Seu nome"
+                                required
+                                maxlength="120"
+                            />
+                        </div>
+
+                        <div class="field">
+                            <label for="register-tenant-name">Nome da empresa ou tenant</label>
+                            <input
+                                id="register-tenant-name"
+                                type="text"
+                                placeholder="Ex: Operacao Central"
+                                required
+                                maxlength="120"
+                            />
+                        </div>
+
+                        <div class="field">
+                            <label for="register-username">Nome de usuario</label>
                             <input
                                 id="register-username"
                                 type="text"
@@ -71,7 +91,7 @@
                                 maxlength="30"
                             />
                         </div>
-                        
+
                         <div class="field">
                             <label for="register-email">Email</label>
                             <input
@@ -81,13 +101,13 @@
                                 required
                             />
                         </div>
-                        
+
                         <div class="field">
                             <label for="register-password">Senha</label>
                             <input
                                 id="register-password"
                                 type="password"
-                                placeholder="Mínimo 6 caracteres"
+                                placeholder="Minimo 6 caracteres"
                                 required
                                 minlength="6"
                             />
@@ -105,12 +125,12 @@
                         </div>
 
                         <button type="submit" class="auth-btn">
-                            Criar Conta
+                            Criar Tenant
                         </button>
                     </form>
 
                     <div class="auth-switch">
-                        <p>Já tem uma conta? <a href="#" id="show-login">Fazer login</a></p>
+                        <p>Ja tem acesso ao tenant? <a href="#" id="show-login">Fazer login</a></p>
                     </div>
                 </div>
 

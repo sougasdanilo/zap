@@ -40,7 +40,7 @@ class AuthManager {
 
   async handleLogin(e) {
     e.preventDefault()
-    
+
     const email = document.getElementById('login-email').value
     const password = document.getElementById('login-password').value
 
@@ -74,8 +74,7 @@ class AuthManager {
 
       setTimeout(() => {
         window.location.href = '/'
-      }, 1500)
-
+      }, 1200)
     } catch (error) {
       this.showError(error.message)
     } finally {
@@ -85,19 +84,21 @@ class AuthManager {
 
   async handleRegister(e) {
     e.preventDefault()
-    
+
+    const fullName = document.getElementById('register-full-name').value
+    const tenantName = document.getElementById('register-tenant-name').value
     const username = document.getElementById('register-username').value
     const email = document.getElementById('register-email').value
     const password = document.getElementById('register-password').value
     const confirmPassword = document.getElementById('register-confirm-password').value
 
-    if (!username || !email || !password || !confirmPassword) {
+    if (!fullName || !tenantName || !username || !email || !password || !confirmPassword) {
       this.showError('Preencha todos os campos')
       return
     }
 
     if (password !== confirmPassword) {
-      this.showError('As senhas não coincidem')
+      this.showError('As senhas nao coincidem')
       return
     }
 
@@ -114,25 +115,24 @@ class AuthManager {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ username, email, password })
+        body: JSON.stringify({ fullName, tenantName, username, email, password })
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Erro ao criar conta')
+        throw new Error(data.error || 'Erro ao criar tenant')
       }
 
       localStorage.setItem('accessToken', data.tokens.accessToken)
       localStorage.setItem('refreshToken', data.tokens.refreshToken)
       localStorage.setItem('user', JSON.stringify(data.user))
 
-      this.showSuccess('Conta criada com sucesso!')
+      this.showSuccess('Tenant criado com sucesso!')
 
       setTimeout(() => {
         window.location.href = '/'
-      }, 1500)
-
+      }, 1200)
     } catch (error) {
       this.showError(error.message)
     } finally {
@@ -148,7 +148,7 @@ class AuthManager {
       try {
         const response = await fetch('/api/auth/me', {
           headers: {
-            'Authorization': `Bearer ${accessToken}`
+            Authorization: `Bearer ${accessToken}`
           }
         })
 
@@ -160,17 +160,16 @@ class AuthManager {
         if (response.status === 401) {
           await this.refreshToken()
           window.location.href = '/'
-          return
         }
       } catch (error) {
-        console.error('Erro ao verificar autenticação:', error)
+        console.error('Erro ao verificar autenticacao:', error)
       }
     }
   }
 
   async refreshToken() {
     const refreshToken = localStorage.getItem('refreshToken')
-    
+
     if (!refreshToken) {
       this.clearAuth()
       return
@@ -186,13 +185,12 @@ class AuthManager {
       })
 
       if (!response.ok) {
-        throw new Error('Token inválido')
+        throw new Error('Token invalido')
       }
 
       const data = await response.json()
       localStorage.setItem('accessToken', data.tokens.accessToken)
       localStorage.setItem('refreshToken', data.tokens.refreshToken)
-
     } catch (error) {
       this.clearAuth()
     }

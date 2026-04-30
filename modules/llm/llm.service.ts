@@ -1,64 +1,61 @@
-import axios from 'axios'
-import { AIConfig, AIConfigService } from '../ai/ai.config.service'
+import axios from "axios";
+import { AIConfig, AIConfigService } from "../ai/ai.config.service";
 
 export class LLMService {
-  private static config: AIConfig | null = null
+  static async ask(
+    messages: any[],
+    options: { tenantId?: string; sessionId?: string } = {},
+  ): Promise<string> {
+    const config = options.tenantId
+      ? await AIConfigService.loadConfig(options.tenantId)
+      : options.sessionId
+        ? await AIConfigService.loadConfigBySession(options.sessionId)
+        : await AIConfigService.loadConfig();
 
-  private static async getConfig(): Promise<AIConfig> {
-    if (!this.config) {
-      this.config = await AIConfigService.loadConfig()
+    if (config.provider === "google-ai" && config.googleAI) {
+      return this.askGoogleAI(messages, config.googleAI);
     }
-    return this.config
-  }
 
-  static async ask(messages: any[]): Promise<string> {
-    const config = await this.getConfig()
-
-    if (config.provider === 'google-ai' && config.googleAI) {
-      return this.askGoogleAI(messages, config.googleAI)
-    } else {
-      throw new Error('Configuração inválida - apenas Google AI é suportado')
-    }
+    throw new Error("Configuracao invalida - apenas Google AI e suportado");
   }
 
   static async askWithConfig(messages: any[], config: any): Promise<string> {
-    if (config.provider === 'google-ai' && config.googleAI) {
-      return this.askGoogleAI(messages, config.googleAI)
-    } else {
-      throw new Error('Configuração inválida para teste - apenas Google AI é suportado')
+    if (config.provider === "google-ai" && config.googleAI) {
+      return this.askGoogleAI(messages, config.googleAI);
     }
+
+    throw new Error("Configuracao invalida para teste - apenas Google AI e suportado");
   }
 
-  private static async askGoogleAI(messages: any[], config: AIConfig['googleAI']): Promise<string> {
+  private static async askGoogleAI(
+    messages: any[],
+    config: AIConfig["googleAI"],
+  ): Promise<string> {
     if (!config) {
-      throw new Error('Configuração do Google AI não encontrada')
+      throw new Error("Configuracao do Google AI nao encontrada");
     }
 
     try {
-      // Google AI não suporta role 'system' diretamente, então tratamos o prompt como primeira mensagem
-      const systemMessage = messages.find(msg => msg.role === 'system');
-      const otherMessages = messages.filter(msg => msg.role !== 'system');
-      
-      // Se houver system prompt, coloca como primeira mensagem
+      const systemMessage = messages.find((msg) => msg.role === "system");
+      const otherMessages = messages.filter((msg) => msg.role !== "system");
+
       const googleAIMessages: any[] = [];
-      
+
       if (systemMessage) {
         googleAIMessages.push({
-          parts: [{ text: systemMessage.content }]
+          parts: [{ text: systemMessage.content }],
         });
       }
-      
-      // Adiciona as outras mensagens
-      otherMessages.forEach(msg => {
+
+      otherMessages.forEach((msg) => {
         googleAIMessages.push({
-          parts: [{ text: msg.content }]
+          parts: [{ text: msg.content }],
         });
       });
 
-      // Se não houver mensagens, cria uma mensagem inicial
       if (googleAIMessages.length === 0) {
         googleAIMessages.push({
-          parts: [{ text: 'Olá! Como posso ajudar?' }]
+          parts: [{ text: "Ola! Como posso ajudar?" }],
         });
       }
 
@@ -68,25 +65,25 @@ export class LLMService {
           contents: googleAIMessages,
           generationConfig: {
             temperature: config.temperature,
-            maxOutputTokens: config.maxTokens
-          }
+            maxOutputTokens: config.maxTokens,
+          },
         },
         {
           timeout: 30000,
           headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      )
+            "Content-Type": "application/json",
+          },
+        },
+      );
 
-      return response.data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Sem resposta'
+      return response.data?.candidates?.[0]?.content?.parts?.[0]?.text || "Sem resposta";
     } catch (error) {
-      console.error('Google AI API error:', error)
-      throw new Error('Erro ao comunicar com Google AI')
+      console.error("Google AI API error:", error);
+      throw new Error("Erro ao comunicar com Google AI");
     }
   }
 
   static async reloadConfig(): Promise<void> {
-    this.config = await AIConfigService.loadConfig()
+    return;
   }
 }

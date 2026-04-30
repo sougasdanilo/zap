@@ -1,115 +1,128 @@
-import { Router } from 'express'
-import { AuthService } from '../modules/auth/auth.service'
-import { authenticateToken, AuthenticatedRequest } from '../middleware/auth.middleware'
+import { Router } from "express";
+import { AuthService } from "../modules/auth/auth.service";
+import { authenticateToken, type AuthenticatedRequest } from "../middleware/auth.middleware";
 
-const router = Router()
+const router = Router();
 
-router.post('/register', async (req, res) => {
+router.post("/register", async (req, res) => {
   try {
-    const { username, email, password } = req.body
+    const { username, fullName, email, password, tenantName } = req.body;
 
     if (!username || !email || !password) {
-      return res.status(400).json({ error: 'Todos os campos são obrigatórios' })
+      return res.status(400).json({ error: "Todos os campos obrigatorios devem ser preenchidos" });
     }
 
     if (password.length < 6) {
-      return res.status(400).json({ error: 'A senha deve ter pelo menos 6 caracteres' })
+      return res.status(400).json({ error: "A senha deve ter pelo menos 6 caracteres" });
     }
 
-    if (!email.includes('@') || !email.includes('.')) {
-      return res.status(400).json({ error: 'Email inválido' })
+    if (!email.includes("@") || !email.includes(".")) {
+      return res.status(400).json({ error: "Email invalido" });
     }
 
-    const result = await AuthService.register({ username, email, password })
-    
+    const result = await AuthService.register({
+      username,
+      fullName,
+      email,
+      password,
+      tenantName,
+    });
+
     res.status(201).json({
-      message: 'Usuário criado com sucesso',
+      message: "Tenant criado com sucesso",
       user: result.user,
-      tokens: result.tokens
-    })
+      tenant: result.tenant,
+      sessionId: result.tenant.sessionId,
+      tokens: result.tokens,
+    });
   } catch (error) {
     if (error instanceof Error) {
-      if (error.message.includes('já existe')) {
-        return res.status(409).json({ error: error.message })
+      if (error.message.includes("ja existe")) {
+        return res.status(409).json({ error: error.message });
       }
-      return res.status(400).json({ error: error.message })
-    }
-    res.status(500).json({ error: 'Erro interno do servidor' })
-  }
-})
 
-router.post('/login', async (req, res) => {
+      return res.status(400).json({ error: error.message });
+    }
+
+    res.status(500).json({ error: "Erro interno do servidor" });
+  }
+});
+
+router.post("/login", async (req, res) => {
   try {
-    const { email, password } = req.body
+    const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email e senha são obrigatórios' })
+      return res.status(400).json({ error: "Email e senha sao obrigatorios" });
     }
 
-    const result = await AuthService.login({ email, password })
-    
+    const result = await AuthService.login({ email, password });
+
     res.json({
-      message: 'Login realizado com sucesso',
+      message: "Login realizado com sucesso",
       user: result.user,
-      tokens: result.tokens
-    })
+      tenant: result.tenant,
+      sessionId: result.tenant.sessionId,
+      tokens: result.tokens,
+    });
   } catch (error) {
     if (error instanceof Error) {
-      if (error.message.includes('inválidas')) {
-        return res.status(401).json({ error: error.message })
+      if (error.message.includes("Credenciais")) {
+        return res.status(401).json({ error: error.message });
       }
-      return res.status(400).json({ error: error.message })
-    }
-    res.status(500).json({ error: 'Erro interno do servidor' })
-  }
-})
 
-router.post('/refresh', async (req, res) => {
+      return res.status(400).json({ error: error.message });
+    }
+
+    res.status(500).json({ error: "Erro interno do servidor" });
+  }
+});
+
+router.post("/refresh", async (req, res) => {
   try {
-    const { refreshToken } = req.body
+    const { refreshToken } = req.body;
 
     if (!refreshToken) {
-      return res.status(400).json({ error: 'Token de refresh é obrigatório' })
+      return res.status(400).json({ error: "Token de refresh e obrigatorio" });
     }
 
-    const tokens = await AuthService.refreshToken(refreshToken)
-    
+    const tokens = await AuthService.refreshToken(refreshToken);
+
     res.json({
-      message: 'Tokens atualizados com sucesso',
-      tokens
-    })
+      message: "Tokens atualizados com sucesso",
+      tokens,
+    });
   } catch (error) {
     if (error instanceof Error) {
-      return res.status(401).json({ error: error.message })
+      return res.status(401).json({ error: error.message });
     }
-    res.status(500).json({ error: 'Erro interno do servidor' })
-  }
-})
 
-router.get('/me', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    res.status(500).json({ error: "Erro interno do servidor" });
+  }
+});
+
+router.get("/me", authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
-    const userId = req.user?.id
-    
+    const userId = req.user?.id;
+
     if (!userId) {
-      return res.status(401).json({ error: 'Usuário não autenticado' })
+      return res.status(401).json({ error: "Usuario nao autenticado" });
     }
 
-    const user = await AuthService.getUserById(userId)
-    
-    if (!user) {
-      return res.status(404).json({ error: 'Usuário não encontrado' })
+    const context = await AuthService.getUserContextById(userId);
+
+    if (!context) {
+      return res.status(404).json({ error: "Usuario nao encontrado" });
     }
 
-    // Get user's WhatsApp session ID
-    const whatsappCredentials = await AuthService.getUserWhatsAppCredentials(userId)
-
-    res.json({ 
-      user,
-      sessionId: whatsappCredentials?.sessionId || `user-${userId}`
-    })
+    res.json({
+      user: context.user,
+      tenant: context.tenant,
+      sessionId: context.sessionId,
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Erro interno do servidor' })
+    res.status(500).json({ error: "Erro interno do servidor" });
   }
-})
+});
 
-export default router
+export default router;

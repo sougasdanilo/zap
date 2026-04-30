@@ -5,6 +5,7 @@ import aiConfigRoutes from './routes/ai-config.routes'
 import aiConversationRoutes from './routes/ai-conversation.routes'
 import aiTestRoutes from './routes/ai-test.routes'
 import authRoutes from './routes/auth.routes'
+import adminRoutes from './routes/admin.routes'
 import { AIConversationService } from './modules/ai/ai.conversation.service'
 import { env } from './config/env'
 import { database } from './config/database'
@@ -18,6 +19,7 @@ const publicDir = path.join(__dirname, 'public')
 
 app.use(express.json({ limit: "100mb" }))
 app.use('/api/auth', authRoutes)
+app.use('/api/admin', adminRoutes)
 app.use(sessionRoutes)
 app.use(chatRoutes)
 app.use('/api/ai', aiConfigRoutes)
@@ -37,6 +39,10 @@ app.get('/', (req, res) => {
 
 app.get('/auth', (req, res) => {
   res.sendFile(path.join(publicDir, 'auth.html'))
+})
+
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(publicDir, 'admin.html'))
 })
 
 app.listen(env.PORT, () => {

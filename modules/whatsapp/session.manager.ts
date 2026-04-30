@@ -427,22 +427,22 @@ export async function createSession(
     for (const contact of contacts || []) {
       emitContactUpdate(options, {
         id: contact.id,
-        jid: contact.jid,
-        lid: contact.lid,
+        jid: (contact as any).jid,
+        lid: (contact as any).lid,
         name: contact.name,
         notify: contact.notify,
         verifiedName: contact.verifiedName,
       });
 
-      const name = pickContactName(contact);
+      const name = pickContactName(contact as any);
       if (!name) {
         continue;
       }
 
       const knownJids = [
         normalizeJid(contact.id),
-        normalizeJid(contact.jid),
-        normalizeJid(contact.lid),
+        normalizeJid((contact as any).jid),
+        normalizeJid((contact as any).lid),
       ].filter((jid): jid is string => !!jid);
 
       for (const knownJid of knownJids) {
@@ -520,20 +520,20 @@ export async function createSession(
     for (const contact of contacts || []) {
       emitContactUpdate(options, {
         id: contact.id,
-        jid: contact.jid,
-        lid: contact.lid,
+        jid: (contact as any).jid,
+        lid: (contact as any).lid,
         name: contact.name,
         notify: contact.notify,
         verifiedName: contact.verifiedName,
       });
 
       // Atualiza repositório central de nomes
-      const name = pickContactName(contact);
+      const name = pickContactName(contact as any);
       if (name) {
         const knownJids = [
           normalizeJid(contact.id),
-          normalizeJid(contact.jid),
-          normalizeJid(contact.lid),
+          normalizeJid((contact as any).jid),
+          normalizeJid((contact as any).lid),
         ].filter((jid): jid is string => !!jid);
 
         for (const knownJid of knownJids) {
@@ -553,20 +553,20 @@ export async function createSession(
     for (const contact of contacts || []) {
       emitContactUpdate(options, {
         id: contact.id,
-        jid: contact.jid,
-        lid: contact.lid,
+        jid: (contact as any).jid,
+        lid: (contact as any).lid,
         name: contact.name,
         notify: contact.notify,
         verifiedName: contact.verifiedName,
       });
 
       // Atualiza repositório central de nomes
-      const name = pickContactName(contact);
+      const name = pickContactName(contact as any);
       if (name) {
         const knownJids = [
           normalizeJid(contact.id),
-          normalizeJid(contact.jid),
-          normalizeJid(contact.lid),
+          normalizeJid((contact as any).jid),
+          normalizeJid((contact as any).lid),
         ].filter((jid): jid is string => !!jid);
 
         for (const knownJid of knownJids) {
@@ -576,7 +576,10 @@ export async function createSession(
     }
   });
 
-  sock.ev.on("chats.phoneNumberShare", ({ lid, jid }) => {
+  (sock.ev as any).on("chats.phoneNumberShare", ({ lid, jid }: { lid?: string; jid?: string }) => {
+    if (!lid || !jid) {
+      return;
+    }
     emitEvent(
       options,
       "chats.phoneNumberShare",

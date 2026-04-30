@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Painel de Acessos</title>
+        <link rel="stylesheet" href="/styles.css" />
+    </head>
+    <body>
+        <div class="scene-glow scene-glow-one" aria-hidden="true"></div>
+        <div class="scene-glow scene-glow-two" aria-hidden="true"></div>
+
+        <main class="admin-shell">
+            <aside class="admin-sidebar">
+                <div>
+                    <p class="eyebrow">Tenant Control</p>
+                    <h1>Equipe e acessos</h1>
+                    <p class="connect-subtitle">
+                        Crie contas de colaboradores, distribua permissoes e acompanhe o tenant compartilhado.
+                    </p>
+                </div>
+
+                <section class="admin-sidebar-block">
+                    <div class="admin-sidebar-metric">
+                        <span>Tenant</span>
+                        <strong id="sidebar-tenant-name">-</strong>
+                    </div>
+                    <div class="admin-sidebar-metric">
+                        <span>Sessao compartilhada</span>
+                        <strong id="sidebar-session-id">-</strong>
+                    </div>
+                    <div class="admin-sidebar-metric">
+                        <span>Perfil atual</span>
+                        <strong id="sidebar-owner-role">-</strong>
+                    </div>
+                </section>
+
+                <section class="admin-sidebar-block">
+                    <button id="back-to-app-btn" class="auth-btn" type="button">
+                        Voltar para a operacao
+                    </button>
+                    <button id="logout-admin-btn" class="btn-secondary" type="button">
+                        Sair
+                    </button>
+                </section>
+
+                <div id="admin-feedback" class="admin-feedback hidden"></div>
+            </aside>
+
+            <section class="admin-main">
+                <header class="admin-hero">
+                    <div>
+                        <p class="eyebrow">Governanca</p>
+                        <h2 id="hero-title">Carregando tenant...</h2>
+                        <p id="hero-subtitle" class="connect-subtitle">
+                            Estamos reunindo os acessos e permissoes desta operacao.
+                        </p>
+                    </div>
+                    <div id="current-user-badge" class="admin-user-badge">-</div>
+                </header>
+
+                <section class="admin-card">
+                    <div class="admin-card-header">
+                        <div>
+                            <p class="eyebrow">Indicadores</p>
+                            <h3>Panorama do tenant</h3>
+                        </div>
+                    </div>
+                    <div id="stats-grid" class="admin-stats-grid"></div>
+                </section>
+
+                <div class="admin-content-grid">
+                    <section class="admin-card">
+                        <div class="admin-card-header">
+                            <div>
+                                <p class="eyebrow">Tenant</p>
+                                <h3>Configuracao do workspace</h3>
+                            </div>
+                            <span id="tenant-status-badge" class="admin-badge">-</span>
+                        </div>
+
+                        <form id="tenant-form" class="admin-form">
+                            <div class="field">
+                                <label for="tenant-name-input">Nome do tenant</label>
+                                <input id="tenant-name-input" type="text" maxlength="120" required />
+                            </div>
+
+                            <div class="field">
+                                <label for="tenant-description-input">Resumo operacional</label>
+                                <textarea id="tenant-description-input" rows="4" placeholder="Descreva rapidamente o tenant"></textarea>
+                            </div>
+
+                            <div class="admin-inline-fields">
+                                <div class="field">
+                                    <label for="tenant-slug-input">Slug</label>
+                                    <input id="tenant-slug-input" type="text" readonly />
+                                </div>
+                                <div class="field">
+                                    <label for="tenant-session-input">Sessao compartilhada</label>
+                                    <input id="tenant-session-input" type="text" readonly />
+                                </div>
+                            </div>
+
+                            <div class="admin-inline-fields">
+                                <div class="field">
+                                    <label for="tenant-connected-input">WhatsApp</label>
+                                    <input id="tenant-connected-input" type="text" readonly />
+                                </div>
+                                <div class="field">
+                                    <label for="tenant-ai-input">IA</label>
+                                    <input id="tenant-ai-input" type="text" readonly />
+                                </div>
+                            </div>
+
+                            <div class="admin-form-actions">
+                                <button id="tenant-save-btn" class="auth-btn" type="submit">
+                                    Salvar tenant
+                                </button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <section class="admin-card admin-card-tall">
+                        <div class="admin-card-header">
+                            <div>
+                                <p class="eyebrow">Equipe</p>
+                                <h3>Contas do tenant</h3>
+                            </div>
+                            <button id="new-member-btn" class="btn-secondary" type="button">
+                                Novo colaborador
+                            </button>
+                        </div>
+
+                        <div id="members-empty" class="admin-empty-state hidden">
+                            Nenhum colaborador foi criado ainda.
+                        </div>
+                        <div id="members-list" class="members-list"></div>
+                    </section>
+
+                    <section class="admin-card admin-card-tall">
+                        <div class="admin-card-header">
+                            <div>
+                                <p class="eyebrow">Conta</p>
+                                <h3 id="member-form-title">Criar colaborador</h3>
+                            </div>
+                            <span id="member-form-mode" class="admin-badge admin-badge-soft">Novo</span>
+                        </div>
+
+                        <form id="member-form" class="admin-form">
+                            <div class="field">
+                                <label for="member-full-name">Nome completo</label>
+                                <input id="member-full-name" type="text" maxlength="120" required />
+                            </div>
+
+                            <div class="admin-inline-fields">
+                                <div class="field">
+                                    <label for="member-username">Nome de usuario</label>
+                                    <input id="member-username" type="text" maxlength="30" required />
+                                </div>
+                                <div class="field">
+                                    <label for="member-email">Email</label>
+                                    <input id="member-email" type="email" required />
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label for="member-password">Senha</label>
+                                <input id="member-password" type="password" minlength="6" required />
+                            </div>
+
+                            <div class="admin-inline-fields">
+                                <div class="field">
+                                    <label for="member-role">Papel</label>
+                                    <select id="member-role"></select>
+                                </div>
+                                <div class="field">
+                                    <label for="member-status">Status</label>
+                                    <select id="member-status">
+                                        <option value="active">Ativo</option>
+                                        <option value="inactive">Inativo</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label>Permissoes</label>
+                                <div id="member-permissions" class="permission-grid"></div>
+                            </div>
+
+                            <div class="admin-form-actions">
+                                <button id="member-save-btn" class="auth-btn" type="submit">
+                                    Salvar colaborador
+                                </button>
+                                <button id="member-cancel-btn" class="btn-secondary" type="button">
+                                    Limpar
+                                </button>
+                            </div>
+                        </form>
+                    </section>
+                </div>
+            </section>
+        </main>
+
+        <script type="module" src="/admin.js"></script>
+    </body>
+</html>
