@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Usina Dev</title>
+        <link rel="stylesheet" href="/styles.css" />
+    </head>
+    <body>
+        <div class="scene-glow scene-glow-one" aria-hidden="true"></div>
+        <div class="scene-glow scene-glow-two" aria-hidden="true"></div>
+
+        <section id="connect-screen" class="connect-screen">
+            <div class="connect-card">
+                <p class="eyebrow">Usina Dev AI</p>
+                <h1>Conectar ao WhatsApp</h1>
+                <p class="connect-subtitle">
+                    Projeto desenvolvido por Rodrigo Marafon.
+                </p>
+
+                <div class="session-controls">
+                    <button id="connect-btn" type="button">
+                        Iniciar conexao
+                    </button>
+                </div>
+
+                <div class="connection-row">
+                    <span
+                        id="connection-dot"
+                        class="connection-dot"
+                        aria-hidden="true"
+                    ></span>
+                    <p id="connection-status" class="connection-status">
+                        Aguardando conexao...
+                    </p>
+                </div>
+
+                <div id="qr-wrapper" class="qr-wrapper hidden">
+                    <img id="qr-image" alt="QR Code para conectar o WhatsApp" />
+                </div>
+            </div>
+        </section>
+
+        <div id="app-shell" class="app-shell hidden">
+            <aside class="sidebar">
+                <header class="sidebar-top">
+                    <div>
+                        <p class="eyebrow sidebar-eyebrow">Usina Dev</p>
+                        <h1>Chats</h1>
+                        <p id="session-label" class="session-label hidden">
+                            @: -
+                        </p>
+                    </div>
+                    <div class="sidebar-actions">
+                        <button
+                            id="logout-btn"
+                            class="icon-btn"
+                            title="Sair"
+                        >
+                            <svg
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                <polyline points="16 17 21 12 16 7"/>
+                                <line x1="21" y1="12" x2="9" y2="12"/>
+                            </svg>
+                        </button>
+                        <button
+                            id="ai-config-btn"
+                            class="icon-btn"
+                            title="Configurações de IA"
+                        >
+                            <svg
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <circle cx="12" cy="12" r="3"/>
+                                <path d="M12 1v6m0 6v6m4.22-13.22l4.24 4.24M1.54 1.54l4.24 4.24M20.46 20.46l-4.24-4.24M1.54 20.46l4.24-4.24"/>
+                            </svg>
+                        </button>
+                        <button
+                            id="ai-toggle-btn"
+                            class="icon-btn"
+                            title="Ligar/Desligar IA"
+                        >
+                            <svg
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                            </svg>
+                        </button>
+                        <span
+                            id="connection-pill"
+                            class="connection-pill connection-pill-idle"
+                            >Aguardando</span
+                        >
+                    </div>
+                </header>
+
+                <div class="chat-search-wrap">
+                    <input
+                        id="chat-search-input"
+                        type="text"
+                        placeholder="Buscar por nome ou JID"
+                    />
+                </div>
+
+                <div id="chat-list" class="chat-list"></div>
+            </aside>
+
+            <main class="chat-panel">
+                <header id="chat-header" class="chat-header">
+                    <div class="chat-header-left">
+                        <div class="chat-title-wrapper">
+                            <div id="chat-profile-picture" class="chat-profile-picture">
+                                <svg class="profile-placeholder" width="40" height="40" viewBox="0 0 40 40" fill="none">
+                                    <circle cx="20" cy="20" r="20" fill="#E5E7EB"/>
+                                    <circle cx="20" cy="16" r="6" fill="#9CA3AF"/>
+                                    <path d="M8 32C8 26.5 12.5 22 20 22C27.5 22 32 26.5 32 32" fill="#9CA3AF"/>
+                                </svg>
+                            </div>
+                            <div class="chat-title-content">
+                                <h2 id="chat-header-title">Selecione uma conversa</h2>
+                                <p id="chat-header-subtitle">
+                                    Escolha um contato para abrir o historico.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-header-actions">
+                        <button id="business-toggle-btn" class="header-btn" type="button" title="Opções de Business">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3"/>
+                                <circle cx="12" cy="4" r="2"/>
+                                <circle cx="12" cy="20" r="2"/>
+                                <circle cx="4" cy="12" r="2"/>
+                                <circle cx="20" cy="12" r="2"/>
+                            </svg>
+                        </button>
+                    </div>
+                </header>
+
+                <section id="message-list" class="message-list"></section>
+
+                <div id="message-composer" class="message-composer">
+                    <!-- Campo de input principal -->
+                    <div class="composer-input-wrapper">
+                        <button id="emoji-btn" class="composer-btn" type="button" title="Emoji">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                                <line x1="9" y1="9" x2="9.01" y2="9"/>
+                                <line x1="15" y1="9" x2="15.01" y2="9"/>
+                            </svg>
+                        </button>
+                        
+                        <div class="input-field-wrapper">
+                            <textarea 
+                                id="message-input" 
+                                class="message-input-field"
+                                placeholder="Digite uma mensagem"
+                                rows="1"
+                            ></textarea>
+                            <div id="typing-indicator" class="composer-typing-indicator hidden">
+                                <span class="typing-dot"></span>
+                                <span class="typing-dot"></span>
+                                <span class="typing-dot"></span>
+                            </div>
+                        </div>
+
+                        <button id="attach-btn" class="composer-btn" type="button" title="Anexar">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                            </svg>
+                        </button>
+
+                        <button id="voice-btn" class="composer-btn" type="button" title="Gravar áudio">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                                <line x1="12" y1="19" x2="12" y2="23"/>
+                                <line x1="8" y1="23" x2="16" y2="23"/>
+                            </svg>
+                        </button>
+
+                        <button id="send-btn" class="composer-btn send-btn" type="submit" title="Enviar">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="22" y1="2" x2="11" y2="13"/>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Menu de anexos -->
+                    <div id="attach-menu" class="attach-menu hidden">
+                        <div class="attach-menu-header">
+                            <span>Anexar</span>
+                            <button id="close-attach-btn" class="close-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"/>
+                                    <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="attach-options">
+                            <button id="attach-image-btn" class="attach-option" data-type="image">
+                                <div class="attach-icon">📷</div>
+                                <span>Imagem</span>
+                                <input id="image-file-input" type="file" accept="image/*" class="hidden">
+                            </button>
+                            <button id="attach-video-btn" class="attach-option" data-type="video">
+                                <div class="attach-icon">🎥</div>
+                                <span>Vídeo</span>
+                                <input id="video-file-input" type="file" accept="video/*" class="hidden">
+                            </button>
+                            <button id="attach-document-btn" class="attach-option" data-type="document">
+                                <div class="attach-icon">📄</div>
+                                <span>Documento</span>
+                                <input id="document-file-input" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" class="hidden">
+                            </button>
+                            <button id="attach-audio-btn" class="attach-option" data-type="audio">
+                                <div class="attach-icon">🎵</div>
+                                <span>Áudio</span>
+                                <input id="audio-file-input" type="file" accept="audio/*" class="hidden">
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Emoji Picker -->
+                    <div id="emoji-picker" class="emoji-picker hidden">
+                        <div class="emoji-picker-header">
+                            <span>Emoji</span>
+                            <button id="close-emoji-btn" class="close-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"/>
+                                    <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="emoji-categories">
+                            <button class="emoji-category active" data-category="recent">Recentes</button>
+                            <button class="emoji-category" data-category="smile">Sorrisos</button>
+                            <button class="emoji-category" data-category="people">Pessoas</button>
+                            <button class="emoji-category" data-category="animals">Animais</button>
+                            <button class="emoji-category" data-category="food">Comida</button>
+                            <button class="emoji-category" data-category="activities">Atividades</button>
+                            <button class="emoji-category" data-category="travel">Viagens</button>
+                            <button class="emoji-category" data-category="objects">Objetos</button>
+                            <button class="emoji-category" data-category="symbols">Símbolos</button>
+                        </div>
+                        <div id="emoji-grid" class="emoji-grid"></div>
+                    </div>
+
+                    <!-- Voice Recorder -->
+                    <div id="voice-recorder" class="voice-recorder hidden">
+                        <div class="voice-recorder-content">
+                            <div class="voice-wave">
+                                <span class="wave-dot"></span>
+                                <span class="wave-dot"></span>
+                                <span class="wave-dot"></span>
+                                <span class="wave-dot"></span>
+                                <span class="wave-dot"></span>
+                            </div>
+                            <div class="voice-timer">00:00</div>
+                            <button id="cancel-voice-btn" class="voice-btn-cancel">Cancelar</button>
+                            <button id="send-voice-btn" class="voice-btn-send hidden">Enviar</button>
+                        </div>
+                    </div>
+
+                    <!-- Business Options -->
+                    <div id="business-options" class="business-options hidden">
+                        <div class="business-options-header">
+                            <span>Opções de Business</span>
+                            <button id="close-business-btn" class="close-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"/>
+                                    <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="business-options-content">
+                            <button id="interactive-btn" class="business-option">
+                                <div class="business-icon">🔘</div>
+                                <span>Botões Interativos</span>
+                            </button>
+                            <button id="list-btn" class="business-option">
+                                <div class="business-icon">📋</div>
+                                <span>Lista</span>
+                            </button>
+                            <button id="location-btn" class="business-option">
+                                <div class="business-icon">📍</div>
+                                <span>Localização</span>
+                            </button>
+                            <button id="product-btn" class="business-option">
+                                <div class="business-icon">🛍️</div>
+                                <span>Catálogo</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Hidden inputs for API -->
+                    <input id="jid-input" type="hidden" />
+                    <input id="message-type" type="hidden" value="text" />
+                    <input id="media-url-input" type="hidden" />
+                    <input id="mime-input" type="hidden" />
+                    <input id="file-name-input" type="hidden" />
+                    <input id="reaction-message-id" type="hidden" />
+                    <input id="reaction-emoji" type="hidden" value="👍" />
+                    <textarea id="interactive-json" class="hidden" rows="3"></textarea>
+                </div>
+            </main>
+        </div>
+
+        <!-- AI Configuration Modal -->
+        <div id="ai-config-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Configurações de IA</h2>
+                    <button id="close-ai-config-btn" class="close-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="config-section">
+                        <h3>Provedor de IA</h3>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="ai-provider" value="google-ai" checked>
+                                <span>Google AI Studio</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="google-ai-config" class="config-section">
+                        <h3>Configuração do Google AI Studio</h3>
+                        <div class="field">
+                            <label for="google-ai-api-key">API Key</label>
+                            <div class="input-group">
+                                <input id="google-ai-api-key" type="password" placeholder="Sua API Key do Google AI">
+                                <button id="test-google-ai-btn" class="btn-secondary" type="button">Testar</button>
+                            </div>
+                            <div class="field-help">
+                                <a href="https://makersuite.google.com/app/apikey" target="_blank" rel="noopener">
+                                    🔗 Obter API Key do Google AI Studio
+                                </a>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="google-ai-model">Modelo</label>
+                            <select id="google-ai-model">
+                                <option value="gemini-2.5-flash">Gemini 2.5 Flash (Rápido)</option>
+                                <option value="gemini-2.5-pro">Gemini 2.5 Pro (Completo)</option>
+                                <option value="gemini-3-pro-preview">Gemini 3 Pro Preview</option>
+                                <option value="gemini-3-flash-preview">Gemini 3 Flash Preview</option>
+                                <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label for="google-ai-temperature">Temperatura</label>
+                            <input id="google-ai-temperature" type="number" min="0" max="2" step="0.1" value="0.7">
+                            <div class="field-help">Controla a criatividade: 0 (conservador) a 2 (criativo)</div>
+                        </div>
+                        <div class="field">
+                            <label for="google-ai-max-tokens">Tokens Máximos</label>
+                            <input id="google-ai-max-tokens" type="number" min="1" max="8192" value="2048">
+                            <div class="field-help">Máximo de tokens na resposta (1-8192)</div>
+                        </div>
+                    </div>
+
+                    <!-- Bot Context Configuration -->
+                    <div class="config-section">
+                        <h3>Contexto do Bot</h3>
+                        
+                        <div class="field">
+                            <label for="system-prompt">Prompt do Sistema</label>
+                            <textarea id="system-prompt" rows="4" placeholder="Defina o comportamento e personalidade do bot...">Você é um atendente profissional.
+Responda de forma objetiva.
+Nunca invente informações.</textarea>
+                            <div class="field-help">Instruções iniciais que definem como o bot deve se comportar</div>
+                        </div>
+
+                        <div class="field">
+                            <label for="max-history-length">Tamanho Máximo do Histórico</label>
+                            <input id="max-history-length" type="number" min="5" max="100" value="20">
+                            <div class="field-help">Número máximo de mensagens mantidas na memória da conversa</div>
+                        </div>
+                    </div>
+
+                    <!-- Group Settings Configuration -->
+                    <div class="config-section">
+                        <h3>Configurações de Grupos</h3>
+                        
+                        <div class="field">
+                            <label class="checkbox-label">
+                                <input id="group-ai-enabled" type="checkbox">
+                                <span class="checkmark"></span>
+                                Habilitar IA em grupos
+                            </label>
+                            <div class="field-help">Permite que o bot responda mensagens em grupos do WhatsApp</div>
+                        </div>
+
+                        <div id="group-options" class="group-options">
+                            <div class="field">
+                                <label class="checkbox-label">
+                                    <input id="respond-to-mentions" type="checkbox" checked>
+                                    <span class="checkmark"></span>
+                                    Responder a menções
+                                </label>
+                                <div class="field-help">Responde quando alguém menciona o bot no grupo</div>
+                            </div>
+
+                            <div class="field">
+                                <label class="checkbox-label">
+                                    <input id="respond-to-commands" type="checkbox" checked>
+                                    <span class="checkmark"></span>
+                                    Responder a comandos
+                                </label>
+                                <div class="field-help">Responde a mensagens que começam com o prefixo de comando</div>
+                            </div>
+
+                            <div class="field">
+                                <label for="command-prefix">Prefixo de Comando</label>
+                                <input id="command-prefix" type="text" maxlength="5" value="!" placeholder="!">
+                                <div class="field-help">Caractere que identifica um comando (ex: !, /, .)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bot Test Chat -->
+                    <div class="config-section">
+                        <h3>Testar Bot</h3>
+                        <div class="test-chat-container">
+                            <div class="test-chat-messages" id="test-chat-messages">
+                                <div class="test-message bot-message">
+                                    <div class="message-content">Olá! Envie uma mensagem para testar como eu respondo.</div>
+                                </div>
+                            </div>
+                            <div class="test-chat-input-container">
+                                <input 
+                                    id="test-chat-input" 
+                                    type="text" 
+                                    placeholder="Digite uma mensagem para testar..."
+                                    class="test-chat-input"
+                                >
+                                <button id="test-chat-send-btn" class="btn-primary" type="button">
+                                    Enviar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="config-status" id="config-status"></div>
+                </div>
+
+                <div class="modal-footer">
+                    <button id="save-ai-config-btn" class="btn-primary">Salvar Configuração</button>
+                    <button id="cancel-ai-config-btn" class="btn-secondary">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <script type="module" src="/app.js"></script>
+    </body>
+</html>

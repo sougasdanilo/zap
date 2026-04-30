@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Login - WhatsApp Bot</title>
+        <link rel="stylesheet" href="/styles.css" />
+    </head>
+    <body>
+        <div class="scene-glow scene-glow-one" aria-hidden="true"></div>
+        <div class="scene-glow scene-glow-two" aria-hidden="true"></div>
+
+        <section id="auth-screen" class="connect-screen">
+            <div class="connect-card">
+                <p class="eyebrow">WhatsApp Bot Console</p>
+                
+                <!-- Login Form -->
+                <div id="login-form" class="auth-form">
+                    <h1>Faça Login</h1>
+                    <p class="connect-subtitle">
+                        Entre com suas credenciais para acessar o painel.
+                    </p>
+
+                    <form id="login-form-element" class="auth-form-element">
+                        <div class="field">
+                            <label for="login-email">Email</label>
+                            <input
+                                id="login-email"
+                                type="email"
+                                placeholder="seu@email.com"
+                                required
+                            />
+                        </div>
+                        
+                        <div class="field">
+                            <label for="login-password">Senha</label>
+                            <input
+                                id="login-password"
+                                type="password"
+                                placeholder="Sua senha"
+                                required
+                            />
+                        </div>
+
+                        <button type="submit" class="auth-btn">
+                            Entrar
+                        </button>
+                    </form>
+
+                    <div class="auth-switch">
+                        <p>Não tem uma conta? <a href="#" id="show-register">Criar conta</a></p>
+                    </div>
+                </div>
+
+                <!-- Register Form -->
+                <div id="register-form" class="auth-form hidden">
+                    <h1>Criar Conta</h1>
+                    <p class="connect-subtitle">
+                        Cadastre-se para usar o WhatsApp Bot.
+                    </p>
+
+                    <form id="register-form-element" class="auth-form-element">
+                        <div class="field">
+                            <label for="register-username">Nome de usuário</label>
+                            <input
+                                id="register-username"
+                                type="text"
+                                placeholder="seu-usuario"
+                                required
+                                minlength="3"
+                                maxlength="30"
+                            />
+                        </div>
+                        
+                        <div class="field">
+                            <label for="register-email">Email</label>
+                            <input
+                                id="register-email"
+                                type="email"
+                                placeholder="seu@email.com"
+                                required
+                            />
+                        </div>
+                        
+                        <div class="field">
+                            <label for="register-password">Senha</label>
+                            <input
+                                id="register-password"
+                                type="password"
+                                placeholder="Mínimo 6 caracteres"
+                                required
+                                minlength="6"
+                            />
+                        </div>
+
+                        <div class="field">
+                            <label for="register-confirm-password">Confirmar Senha</label>
+                            <input
+                                id="register-confirm-password"
+                                type="password"
+                                placeholder="Confirme sua senha"
+                                required
+                                minlength="6"
+                            />
+                        </div>
+
+                        <button type="submit" class="auth-btn">
+                            Criar Conta
+                        </button>
+                    </form>
+
+                    <div class="auth-switch">
+                        <p>Já tem uma conta? <a href="#" id="show-login">Fazer login</a></p>
+                    </div>
+                </div>
+
+                <div class="auth-status">
+                    <div id="auth-loading" class="auth-loading hidden">
+                        <div class="loading-spinner"></div>
+                        <span>Processando...</span>
+                    </div>
+                    <div id="auth-error" class="auth-error hidden"></div>
+                    <div id="auth-success" class="auth-success hidden"></div>
+                </div>
+            </div>
+        </section>
+
+        <script type="module" src="/auth.js"></script>
+    </body>
+</html>
