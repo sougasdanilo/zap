@@ -83,7 +83,4 @@ export class LLMService {
     }
   }
 
-  static async reloadConfig(): Promise<void> {
-    return;
   }
-}

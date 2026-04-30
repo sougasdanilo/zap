@@ -15,7 +15,7 @@ import type {
   SessionState,
   SendMessagePayload
 } from "../../types/message.types";
-import { normalizeJid } from "../../utils/message.utils";
+import { normalizeJid, parseDataUrl } from "../../utils/message.utils";
 import { MessageSender } from "../../utils/message.sender";
 import { AIConversationService } from "../ai/ai.conversation.service";
 import { TenantService } from "../tenant/tenant.service";
@@ -35,24 +35,6 @@ function setState(sessionId: string, next: Partial<SessionState>) {
   });
 }
 
-function parseDataUrl(dataUrl?: string): {
-  buffer?: Buffer;
-  mimetype?: string;
-} {
-  if (!dataUrl) {
-    return {};
-  }
-
-  const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
-  if (!match) {
-    return {};
-  }
-
-  return {
-    mimetype: match[1],
-    buffer: Buffer.from(match[2], "base64"),
-  };
-}
 
 function buildMediaSource(payload: SendMessagePayload): {
   source: Buffer | { url: string };

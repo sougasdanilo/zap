@@ -1,6 +1,7 @@
 import type { SendMessagePayload } from "../types/message.types";
 import type { WASocket } from "@whiskeysockets/baileys";
 import { ChatStore } from "../modules/chat/chat.store";
+import { parseDataUrl } from "./message.utils";
 import { spawn } from "child_process";
 
 export class MessageSender {
@@ -233,37 +234,11 @@ export class MessageSender {
     return response;
   }
 
-  private parseDataUrl(dataUrl?: string): {
-    buffer?: Buffer;
-    mimetype?: string;
-  } {
-    if (!dataUrl) {
-      return {};
-    }
-
-    const match = dataUrl.match(/^data:([^,]+),(.*)$/);
-    if (!match) return {};
-
-    const header = match[1] || "";
-    const base64Data = match[2] || "";
-
-    const headerParts = header.split(";").map((part) => part.trim());
-    const mimetype = headerParts[0] || undefined;
-    const isBase64 = headerParts.includes("base64");
-
-    if (!isBase64 || !base64Data) return {};
-
-    return {
-      mimetype,
-      buffer: Buffer.from(base64Data, "base64"),
-    };
-  }
-
   private buildMediaSource(payload: SendMessagePayload): {
     source: Buffer | { url: string };
     mimetype?: string;
   } {
-    const parsedDataUrl = this.parseDataUrl(payload.mediaDataUrl);
+    const parsedDataUrl = parseDataUrl(payload.mediaDataUrl);
 
     if (parsedDataUrl.buffer) {
       return {

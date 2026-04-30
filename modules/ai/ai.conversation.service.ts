@@ -11,9 +11,6 @@ export interface AIResponse {
 }
 
 export class AIConversationService {
-  static async loadStatus(): Promise<void> {
-    return;
-  }
 
   static async enableAI(sessionId: string) {
     const tenant = await TenantService.getTenantBySessionId(sessionId);

@@ -37,10 +37,6 @@ database.connect().catch((error) => {
   process.exit(1);
 })
 
-// Carrega status da IA ao iniciar
-AIConversationService.loadStatus().catch((error) => {
-  console.error('Erro ao carregar status da IA:', error);
-})
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(publicDir, 'index.html'))

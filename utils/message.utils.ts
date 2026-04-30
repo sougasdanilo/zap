@@ -125,7 +125,7 @@ export function pickQuoted(content: any): MessageQuote | undefined {
   };
 }
 
-function createMediaInfo(
+export function createMediaInfo(
   mediaMessage: any,
   kind: MessageMedia["kind"],
   caption?: string,
@@ -313,6 +313,25 @@ export function createUnknownMessage(base: any, rawType?: string) {
     type: "unknown" as MessageKind,
     text: "[Mensagem nao suportada]",
     rawType,
+  };
+}
+
+export function parseDataUrl(dataUrl?: string): {
+  buffer?: Buffer;
+  mimetype?: string;
+} {
+  if (!dataUrl) {
+    return {};
+  }
+
+  const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+  if (!match) {
+    return {};
+  }
+
+  return {
+    mimetype: match[1],
+    buffer: Buffer.from(match[2], "base64"),
   };
 }
 

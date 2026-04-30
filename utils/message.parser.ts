@@ -10,7 +10,8 @@ import {
   createSystemMessage,
   createReactionMessage,
   createInteractiveMessage,
-  createUnknownMessage
+  createUnknownMessage,
+  createMediaInfo
 } from "./message.utils";
 
 type MessageContent = any;
@@ -142,7 +143,7 @@ class MessageParser {
         continue;
       }
 
-      const mediaInfo = this.createMediaInfo(mediaMessage, kind);
+      const mediaInfo = createMediaInfo(mediaMessage, kind);
       const text = mediaInfo.caption || 
         (kind === "document" && mediaMessage.fileName) || 
         fallback;
@@ -239,20 +240,7 @@ class MessageParser {
     };
   }
 
-  private createMediaInfo(mediaMessage: any, kind: "image" | "video" | "audio" | "sticker" | "document") {
-    return {
-      kind,
-      mimetype: mediaMessage?.mimetype || undefined,
-      caption: mediaMessage?.caption || undefined,
-      fileName: mediaMessage?.fileName || undefined,
-      seconds: mediaMessage?.seconds ? Number(mediaMessage.seconds) || undefined : undefined,
-      fileLength: Number(mediaMessage?.fileLength || 0) || undefined,
-      hasMedia: true,
-      mediaKeyTs: normalizeTimestamp(mediaMessage?.mediaKeyTimestamp),
-      mediaKey: mediaMessage?.mediaKey || undefined,
-    };
   }
-}
 
 export function parseMessagePayload(message: any): SessionMessage | null {
   return MessageParser.parse(message);
