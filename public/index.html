@@ -466,6 +466,108 @@ Nunca invente informações.</textarea>
                         </div>
                     </div>
 
+                    <!-- Exit Conditions Configuration -->
+                    <div class="config-section">
+                        <h3>Condições de Saída</h3>
+                        
+                        <div class="field">
+                            <label class="checkbox-label">
+                                <input id="exit-conditions-enabled" type="checkbox" checked>
+                                <span class="checkmark"></span>
+                                Habilitar condições de saída
+                            </label>
+                            <div class="field-help">Permite que o bot detecte quando deve parar de interagir e transferir para humano</div>
+                        </div>
+
+                        <div id="exit-conditions-options">
+                            <div class="field">
+                                <label for="exit-keywords">Palavras-chave de Saída</label>
+                                <textarea id="exit-keywords" rows="3" placeholder="humano, atendente, pessoa, ajuda, falar com alguém">humano, atendente, pessoa, ajuda, falar com alguém</textarea>
+                                <div class="field-help">Palavras que indicam que o usuário quer falar com um humano (separadas por vírgula)</div>
+                            </div>
+
+                            <div class="field">
+                                <label for="exit-phrases">Frases de Saída</label>
+                                <textarea id="exit-phrases" rows="4" placeholder="quero falar com um humano&#10;posso falar com um atendente&#10;gostaria de falar com alguém&#10;transferir para humano&#10;quero atendimento humano">quero falar com um humano
+posso falar com um atendente
+gostaria de falar com alguém
+transferir para humano
+quero atendimento humano</textarea>
+                                <div class="field-help">Frases completas que acionam a transferência (uma por linha)</div>
+                            </div>
+
+                            <div class="admin-inline-fields">
+                                <div class="field">
+                                    <label for="min-messages">Mínimo de Mensagens</label>
+                                    <input id="min-messages" type="number" min="1" max="20" value="3">
+                                    <div class="field-help">Mínimo de mensagens antes de permitir saída</div>
+                                </div>
+                                <div class="field">
+                                    <label for="max-messages">Máximo de Mensagens</label>
+                                    <input id="max-messages" type="number" min="10" max="200" value="50">
+                                    <div class="field-help">Máximo de mensagens antes de sair automaticamente</div>
+                                </div>
+                            </div>
+
+                            <div class="admin-inline-fields">
+                                <div class="field">
+                                    <label for="inactivity-minutes">Inatividade (minutos)</label>
+                                    <input id="inactivity-minutes" type="number" min="1" max="60" value="10">
+                                    <div class="field-help">Tempo de inatividade para sair automaticamente</div>
+                                </div>
+                                <div class="field">
+                                    <label for="confidence-threshold">Nível de Confiança</label>
+                                    <input id="confidence-threshold" type="number" min="0.1" max="1.0" step="0.1" value="0.8">
+                                    <div class="field-help">Confiança mínima para acionar saída (0.1-1.0)</div>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label class="checkbox-label">
+                                    <input id="transfer-to-human" type="checkbox" checked>
+                                    <span class="checkmark"></span>
+                                    Transferir para Atendente Humano
+                                </label>
+                                <div class="field-help">Marca a conversa para transferência para atendimento humano</div>
+                            </div>
+
+                            <div class="field">
+                                <label for="exit-message">Mensagem de Saída</label>
+                                <textarea id="exit-message" rows="2" placeholder="Vou transferir sua conversa para um atendente humano. Por favor, aguarde um momento.">Vou transferir sua conversa para um atendente humano. Por favor, aguarde um momento.</textarea>
+                                <div class="field-help">Mensagem enviada ao usuário quando a saída é acionada</div>
+                            </div>
+
+                            <div class="field">
+                                <label class="checkbox-label">
+                                    <input id="enable-ai-detection" type="checkbox">
+                                    <span class="checkmark"></span>
+                                    Habilitar Detecção por IA
+                                </label>
+                                <div class="field-help">Usa IA para analisar mensagens e detectar desejo de atendimento humano</div>
+                            </div>
+
+                            <div id="ai-detection-options">
+                                <div class="field">
+                                    <label for="ai-detection-prompt">Prompt de Detecção por IA</label>
+                                    <textarea id="ai-detection-prompt" rows="6" placeholder="Analise a mensagem do usuário e determine se ela indica um desejo claro de falar com um atendente humano. Responda apenas com 'SIM' ou 'NAO'.
+
+Contexto: O usuário está conversando com um assistente de IA e pode querer ser transferido para um humano.
+
+Mensagem: {message}
+
+Responda 'SIM' se a mensagem indicar desejo de atendimento humano, caso contrário responda 'NAO'.">Analise a mensagem do usuário e determine se ela indica um desejo claro de falar com um atendente humano. Responda apenas com 'SIM' ou 'NAO'.
+
+Contexto: O usuário está conversando com um assistente de IA e pode querer ser transferido para um humano.
+
+Mensagem: {message}
+
+Responda 'SIM' se a mensagem indicar desejo de atendimento humano, caso contrário responda 'NAO'.</textarea>
+                                    <div class="field-help">Prompt que a IA usará para analisar se o usuário quer atendimento humano. Use {message} como placeholder para a mensagem do usuário.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Bot Test Chat -->
                     <div class="config-section">
                         <h3>Testar Bot</h3>

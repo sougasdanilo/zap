@@ -2,6 +2,7 @@ import { LLMService } from "../llm/llm.service";
 import { ConversationService } from "../conversation/conversation.service";
 import { WhatsAppService } from "../whatsapp/whatsapp.service";
 import { AIConfigService } from "./ai.config.service";
+import { AIExitService } from "./ai.exit.service";
 import type { SendMessagePayload } from "../../types/message.types";
 import { TenantService } from "../tenant/tenant.service";
 
@@ -92,6 +93,32 @@ export class AIConversationService {
 
     try {
       await ConversationService.addMessage(sessionId, jid, "user", text);
+
+      // Verificar condições de saída antes de responder
+      const exitDetection = await AIExitService.shouldExitAI(sessionId, jid, text);
+      
+      if (exitDetection.shouldExit) {
+        console.log(`Exit condition detected for ${jid}: ${exitDetection.reason}`);
+        
+        // Marcar para transferência humana se configurado
+        const config = await AIConfigService.loadConfigBySession(sessionId);
+        if (config.exitConditions?.transferToHuman) {
+          await AIExitService.markForHumanTransfer(sessionId, jid, exitDetection.reason || "Exit condition triggered");
+        }
+
+        // Enviar mensagem de saída
+        if (exitDetection.exitMessage) {
+          const exitPayload: SendMessagePayload = {
+            jid,
+            text: exitDetection.exitMessage,
+            type: "text",
+          };
+          await WhatsAppService.sendMessage(sessionId, exitPayload);
+        }
+        
+        return;
+      }
+
       const conversation = await ConversationService.getFilteredConversation(
         sessionId,
         jid,

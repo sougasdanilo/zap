@@ -189,6 +189,21 @@ const elements = {
   respondToMentions: document.getElementById("respond-to-mentions"),
   respondToCommands: document.getElementById("respond-to-commands"),
   commandPrefix: document.getElementById("command-prefix"),
+  // Exit Conditions
+  exitConditionsEnabled: document.getElementById("exit-conditions-enabled"),
+  exitConditionsOptions: document.getElementById("exit-conditions-options"),
+  exitKeywords: document.getElementById("exit-keywords"),
+  exitPhrases: document.getElementById("exit-phrases"),
+  minMessages: document.getElementById("min-messages"),
+  maxMessages: document.getElementById("max-messages"),
+  inactivityMinutes: document.getElementById("inactivity-minutes"),
+  transferToHuman: document.getElementById("transfer-to-human"),
+  exitMessage: document.getElementById("exit-message"),
+  confidenceThreshold: document.getElementById("confidence-threshold"),
+  // AI Detection
+  enableAIDetection: document.getElementById("enable-ai-detection"),
+  aiDetectionOptions: document.getElementById("ai-detection-options"),
+  aiDetectionPrompt: document.getElementById("ai-detection-prompt"),
   // Test Chat elements
   testChatMessages: document.getElementById("test-chat-messages"),
   testChatInput: document.getElementById("test-chat-input"),
@@ -1754,13 +1769,40 @@ async function loadAiConfig() {
       
       // Show/hide group options based on enabled state
       toggleGroupOptions(config.groupSettings.enabled || false);
+    }
+    
+    // Load Exit Conditions config
+    if (config.exitConditions) {
+      elements.exitConditionsEnabled.checked = config.exitConditions.enabled !== false;
+      elements.exitKeywords.value = (config.exitConditions.keywords || []).join(', ');
+      elements.exitPhrases.value = (config.exitConditions.phrases || []).join('\n');
+      elements.minMessages.value = config.exitConditions.minMessages || 3;
+      elements.maxMessages.value = config.exitConditions.maxMessages || 50;
+      elements.inactivityMinutes.value = config.exitConditions.inactivityMinutes || 10;
+      elements.transferToHuman.checked = config.exitConditions.transferToHuman !== false;
+      elements.exitMessage.value = config.exitConditions.exitMessage || 'Vou transferir sua conversa para um atendente humano. Por favor, aguarde um momento.';
+      elements.confidenceThreshold.value = config.exitConditions.confidenceThreshold || 0.8;
+      elements.enableAIDetection.checked = config.exitConditions.enableAIDetection || false;
+      elements.aiDetectionPrompt.value = config.exitConditions.aiDetectionPrompt || 'Analise a mensagem do usuário e determine se ela indica um desejo claro de falar com um atendente humano. Responda apenas com \'SIM\' ou \'NAO\'.\n\nContexto: O usuário está conversando com um assistente de IA e pode querer ser transferido para um humano.\n\nMensagem: {message}\n\nResponda \'SIM\' se a mensagem indicar desejo de atendimento humano, caso contrário responda \'NAO\'.';
+      
+      // Show/hide exit conditions options based on enabled state
+      toggleExitConditionsOptions(config.exitConditions.enabled !== false);
+      toggleAIDetectionOptions(config.exitConditions.enableAIDetection || false);
     } else {
       // Default values
-      elements.groupAiEnabled.checked = false;
-      elements.respondToMentions.checked = true;
-      elements.respondToCommands.checked = true;
-      elements.commandPrefix.value = '!';
-      toggleGroupOptions(false);
+      elements.exitConditionsEnabled.checked = true;
+      elements.exitKeywords.value = 'humano, atendente, pessoa, ajuda, falar com alguém';
+      elements.exitPhrases.value = 'quero falar com um humano\nposso falar com um atendente\ngostaria de falar com alguém\ntransferir para humano\nquero atendimento humano';
+      elements.minMessages.value = 3;
+      elements.maxMessages.value = 50;
+      elements.inactivityMinutes.value = 10;
+      elements.transferToHuman.checked = true;
+      elements.exitMessage.value = 'Vou transferir sua conversa para um atendente humano. Por favor, aguarde um momento.';
+      elements.confidenceThreshold.value = 0.8;
+      elements.enableAIDetection.checked = false;
+      elements.aiDetectionPrompt.value = 'Analise a mensagem do usuário e determine se ela indica um desejo claro de falar com um atendente humano. Responda apenas com \'SIM\' ou \'NAO\'.\n\nContexto: O usuário está conversando com um assistente de IA e pode querer ser transferido para um humano.\n\nMensagem: {message}\n\nResponda \'SIM\' se a mensagem indicar desejo de atendimento humano, caso contrário responda \'NAO\'.';
+      toggleExitConditionsOptions(true);
+      toggleAIDetectionOptions(false);
     }
   } catch (error) {
     console.error('Error loading AI config:', error);
@@ -1773,6 +1815,22 @@ function toggleGroupOptions(enabled) {
     elements.groupOptions.style.display = 'block';
   } else {
     elements.groupOptions.style.display = 'none';
+  }
+}
+
+function toggleExitConditionsOptions(enabled) {
+  if (enabled) {
+    elements.exitConditionsOptions.style.display = 'block';
+  } else {
+    elements.exitConditionsOptions.style.display = 'none';
+  }
+}
+
+function toggleAIDetectionOptions(enabled) {
+  if (enabled) {
+    elements.aiDetectionOptions.style.display = 'block';
+  } else {
+    elements.aiDetectionOptions.style.display = 'none';
   }
 }
 
@@ -2292,6 +2350,16 @@ async function boot() {
     addEventListenerSafe(elements.groupAiEnabled, "change", (e) => {
       toggleGroupOptions(e.target.checked);
     });
+    
+    // Exit Conditions toggle
+    addEventListenerSafe(elements.exitConditionsEnabled, "change", (e) => {
+      toggleExitConditionsOptions(e.target.checked);
+    });
+    
+    // AI Detection toggle
+    addEventListenerSafe(elements.enableAIDetection, "change", (e) => {
+      toggleAIDetectionOptions(e.target.checked);
+    });
     addEventListenerSafe(elements.testGoogleAiBtn, "click", () => {
       handleAsyncError(testGoogleAiConnection());
     });
@@ -2369,6 +2437,19 @@ async function saveAiConfig() {
         respondToMentions: elements.respondToMentions.checked,
         respondToCommands: elements.respondToCommands.checked,
         commandPrefix: elements.commandPrefix.value.trim() || '!'
+      },
+      exitConditions: {
+        enabled: elements.exitConditionsEnabled.checked,
+        keywords: elements.exitKeywords.value.split(',').map(k => k.trim()).filter(k => k.length > 0),
+        phrases: elements.exitPhrases.value.split('\n').map(p => p.trim()).filter(p => p.length > 0),
+        minMessages: parseInt(elements.minMessages.value),
+        maxMessages: parseInt(elements.maxMessages.value),
+        inactivityMinutes: parseInt(elements.inactivityMinutes.value),
+        transferToHuman: elements.transferToHuman.checked,
+        exitMessage: elements.exitMessage.value.trim(),
+        confidenceThreshold: parseFloat(elements.confidenceThreshold.value),
+        enableAIDetection: elements.enableAIDetection.checked,
+        aiDetectionPrompt: elements.aiDetectionPrompt.value.trim()
       }
     };
 
